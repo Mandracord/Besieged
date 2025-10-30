@@ -18,5 +18,5 @@ It provides on-screen (HUD) and chat notifications when one or more beastman arm
 ```
 
 ### Credits
-Based on the original concept by Xurion.  
+Based on the original concept by [Xurion](https://github.com/xurion/ffxi-besieged).  
 Refactored and expanded by the Mandracord team.
