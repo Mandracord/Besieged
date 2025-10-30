@@ -44,7 +44,7 @@ local tracker = Tracker.new()
 local notifier = Notifier.new(settings)
 local timer = Timer.new()
 local requesting = false
-local last_snapshot = nil
+local last_status_report = nil
 local last_second = os.time()
 
 local function debug_log(message)
@@ -55,7 +55,7 @@ end
 
 local function update_countdown()
     local remaining = math.max(0, math.floor(settings.interval - timer:check()))
-    notifier:refresh_snapshot(last_snapshot, remaining, settings.debug)
+    notifier:refresh_status(last_status_report, remaining, settings.debug)
 end
 
 local function can_request()
@@ -80,16 +80,16 @@ local function request_besieged_data()
     packets.inject(packet)
 end
 
-local function handle_snapshot(snapshot)
-    if not snapshot then
-        debug_log('Snapshot missing; ignoring')
+local function handle_status_report(report)
+    if not report then
+        debug_log('Status report missing; ignoring')
         return
     end
 
-    last_snapshot = snapshot
+    last_status_report = report
     update_countdown()
 
-    local messages = tracker:evaluate(snapshot)
+    local messages = tracker:evaluate(report)
     if #messages > 0 then
         notifier:announce(messages)
     else
@@ -98,8 +98,8 @@ local function handle_snapshot(snapshot)
 end
 
 local function handle_incoming_packet(packet)
-    local snapshot, err = parser.parse(packet)
-    if not snapshot then
+    local report, err = parser.parse(packet)
+    if not report then
         debug_log('Failed to parse packet: ' .. tostring(err))
         requesting = false
         return
@@ -107,8 +107,8 @@ local function handle_incoming_packet(packet)
 
     timer:next()
     requesting = false
-    snapshot.timestamp = os.time()
-    handle_snapshot(snapshot)
+    report.timestamp = os.time()
+    handle_status_report(report)
 end
 
 local function handle_hud_toggle(flag)
@@ -119,7 +119,7 @@ local function handle_hud_toggle(flag)
     Settings.save(settings)
     notifier:update_options(settings)
     add_to_chat(207, string.format('[Besieged] HUD %s.', flag and 'enabled' or 'disabled'))
-    if last_snapshot then
+    if last_status_report then
         update_countdown()
     end
 end
@@ -134,12 +134,12 @@ local function handle_debug_toggle(flag)
 end
 
 local function show_status()
-    if not last_snapshot then
+    if not last_status_report then
         add_to_chat(207, '[Besieged] No data received yet.')
         return
     end
 
-    local summary = tracker:summary(last_snapshot)
+    local summary = tracker:summary(last_status_report)
     add_to_chat(207, 'Besieged Status:')
     for _, line in ipairs(summary) do
         add_to_chat(207, '  ' .. line)
@@ -193,7 +193,7 @@ end)
 windower.register_event('logout', function()
     notifier:destroy()
     requesting = false
-    last_snapshot = nil
+    last_status_report = nil
 end)
 
 windower.register_event('prerender', function()

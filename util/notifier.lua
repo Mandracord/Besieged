@@ -149,12 +149,12 @@ local function relative_time_string(age_seconds)
     end
 end
 
-function Notifier:refresh_snapshot(snapshot, countdown, show_countdown)
+function Notifier:refresh_status(report, countdown, show_countdown)
     if not self.hud then
         return
     end
 
-    if not snapshot then
+    if not report then
         self.hud_lines.mamool_line = default_line(FACTION_LABELS.mamool)
         self.hud_lines.trolls_line = default_line(FACTION_LABELS.trolls)
         self.hud_lines.llamia_line = default_line(FACTION_LABELS.llamia)
@@ -172,9 +172,9 @@ function Notifier:refresh_snapshot(snapshot, countdown, show_countdown)
     end
 
     local update_fields = {
-        mamool_line = build_line(FACTION_LABELS.mamool, snapshot.mamool and snapshot.mamool.status, snapshot.mamool and snapshot.mamool.level),
-        trolls_line = build_line(FACTION_LABELS.trolls, snapshot.trolls and snapshot.trolls.status, snapshot.trolls and snapshot.trolls.level),
-        llamia_line = build_line(FACTION_LABELS.llamia, snapshot.llamia and snapshot.llamia.status, snapshot.llamia and snapshot.llamia.level),
+        mamool_line = build_line(FACTION_LABELS.mamool, report.mamool and report.mamool.status, report.mamool and report.mamool.level),
+        trolls_line = build_line(FACTION_LABELS.trolls, report.trolls and report.trolls.status, report.trolls and report.trolls.level),
+        llamia_line = build_line(FACTION_LABELS.llamia, report.llamia and report.llamia.status, report.llamia and report.llamia.level),
     }
 
     if show_countdown then
@@ -184,8 +184,8 @@ function Notifier:refresh_snapshot(snapshot, countdown, show_countdown)
     end
 
     local age_seconds = 0
-    if snapshot.timestamp then
-        age_seconds = os.time() - snapshot.timestamp
+    if report.timestamp then
+        age_seconds = os.time() - report.timestamp
     end
 
     self:update_hud(update_fields, age_seconds)
